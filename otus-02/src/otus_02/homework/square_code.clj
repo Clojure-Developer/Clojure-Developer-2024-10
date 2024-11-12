@@ -1,4 +1,5 @@
-(ns otus-02.homework.square-code)
+(ns otus-02.homework.square-code
+  (:require [clojure.string :as string]))
 
 ;; Реализовать классический метод составления секретных сообщений, называемый `square code`.
 ;; Выведите закодированную версию полученного текста.
@@ -127,3 +128,21 @@
 (comment
   (decode-string "imtgdvsfearwermayoogoanouuiontnnlvtwttddesaohghnsseoau"))
 
+(defn encode-string-2 [input]
+  (let [normalized (normalize-str input)
+        [cols rows] (-> normalized count get-colls-rows)]
+    (->> normalized
+         (format (str "%-" (* rows cols) "s"))
+         (partition cols)
+         (apply map str)
+         (str/join " "))))
+
+(comment
+  (encode-string-2 "If man was meant to stay on the ground, god would have given us roots.")
+  (println (normalize-str "If man was meant to stay on the ground, god would have given us roots."))
+  ;ifmanwasmeanttostayonthegroundgodwouldhavegivenusroots
+  (println (-> "ifmanwasmeanttostayonthegroundgodwouldhavegivenusroots" count get-colls-rows))
+  ;[8 7]
+  (println (str "!" (format (str "%-" (* 8 7) "s") "ifmanwasmeanttostayonthegroundgodwouldhavegivenusroots") "!"))
+  (println (partition 8 "ifmanwasmeanttostayonthegroundgodwouldhavegivenusroots  "))
+  )
