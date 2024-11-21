@@ -15,17 +15,6 @@
 
 (defn build-square-map
   [square-map coords next-coords-fn value square-size]
-  (let [new-value (inc value)
-        next-map (assoc square-map coords new-value)
-        next-coords (next-coords-fn coords)
-        cell-empty? (nil? (get next-map next-coords))
-        next-coords (if cell-empty? next-coords {:row (inc (:row coords)) :col (:col coords)})]
-
-    (if (zero? square-size)
-      next-map (build-square-map next-map next-coords next-coords-fn new-value (dec square-size)))))
-
-(defn build-square-map
-  [square-map coords next-coords-fn value square-size]
   (if (zero? square-size)
     square-map
     (let [new-value (inc value)
