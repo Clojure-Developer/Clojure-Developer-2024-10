@@ -32,7 +32,7 @@
 
 ![](https://drek4537l1klr.cloudfront.net/fogus2/Figures/05fig05.jpg)
 
-[Queues in Clojure - Michael Zavarella](https://admay.github.io/queues-in-clojure)
+[Queues in Clojure - Michael Zavarella](https://johndenverscar.github.io/queues-in-clojure)
 
 ### List comprehension
 
