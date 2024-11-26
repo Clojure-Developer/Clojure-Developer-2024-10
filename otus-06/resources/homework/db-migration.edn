@@ -1,0 +1,3 @@
+[[:customers "resources/homework/cust.txt" [[:customer-id :int] [:name :string] [:address :string] [:phone-number :string]]]
+ [:products "resources/homework/prod.txt" [[:product-id :int] [:description :string] [:cost :double]]]
+ [:sales "resources/homework/sales.txt" [[:sale-id :int], [:customer-id :int], [:product-id :int], [:item-count :int]]]]

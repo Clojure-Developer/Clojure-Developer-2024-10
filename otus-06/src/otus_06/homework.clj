@@ -1,4 +1,5 @@
-(ns otus-06.homework)
+(ns otus-06.homework
+  (:require [clojure.java.io :as io]))
 
 ;; Загрузить данные из трех файлов на диске.
 ;; Эти данные сформируют вашу базу данных о продажах.
