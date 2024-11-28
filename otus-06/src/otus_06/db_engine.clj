@@ -1,7 +1,8 @@
 (ns otus-06.db-engine
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]))
 
-(def db
+(defonce db
   (atom {}))
 
 (defn safe-parse-int [s]
@@ -19,7 +20,7 @@
 (defn safe-parse-double [s]
   (cond
     (number? s)
-    s
+    (double s)
     (nil? s)
     0.0
     :default (try
@@ -42,13 +43,12 @@
 
 (defn load-whole-data [file-path schema]
   (with-open [reader (io/reader file-path)]
-    (doall
-      (map (fn [line]
-             (let [values (clojure.string/split line #"\|")
-                   columns (map first schema)]
-               (zipmap columns
-                       (map (fn [[_ type] value] ((type data-converters) value)) schema values))))
-           (line-seq reader)))))
+    (mapv (fn [line]
+           (let [values (str/split line #"\|")
+                 columns (map first schema)]
+             (zipmap columns
+                     (map (fn [[_ type] value] ((type data-converters) value)) schema values))))
+         (line-seq reader))))
 
 
 (defn init-db [config]

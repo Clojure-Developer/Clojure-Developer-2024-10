@@ -1,9 +1,14 @@
 (ns otus-06.app
   (:require [otus-06.db-engine :as db]
             [otus-06.queries :as q]
-            [clojure.edn :as edn]))
+            [clojure.edn :as edn]
+            [clojure.string :as str]))
 
-(def migration (edn/read-string (slurp "resources/homework/db-migration.edn")))
+(def migration
+  (->
+    "resources/homework/db-migration.edn"
+    slurp
+    edn/read-string))
 
 (db/init-db migration)
 
@@ -12,31 +17,35 @@
   (db/load-data :customers))
 
 (defn print-table [data]
-  (let [keys (keys (first data))]
-    (if (not keys) (println "")
-                   (do
-                     (println (clojure.string/join "\t" keys))
-                     (doseq [row data]
-                       (println (clojure.string/join "\t" (map row keys))))))
+  (let [table-keys (keys (first data))]
+    (if (not table-keys)
+      (println "")
+      (do
+        (-> table-keys (str/join "\t") println)
+        (doseq [row data]
+          (->>
+            (map row table-keys)
+            (str/join "\t")
+            println))))
     ))
 
 (def actions
   {1 {:description "Display Customer Table"
-      :action      (fn [] (print-table (db/exec-query q/select-customers-query)))}
+      :action      (fn [] (-> q/select-customers-query db/exec-query print-table))}
    2 {:description "Display Product Table"
-      :action      (fn [] (print-table (db/exec-query q/select-products-query)))}
+      :action      (fn [] (-> q/select-products-query db/exec-query  print-table))}
    3 {:description "Display Sales Table"
 
-      :action      (fn [] (print-table (db/exec-query q/select-sales-query)))}
+      :action      (fn [] (-> q/select-sales-query db/exec-query print-table))}
    4 {:description "Total Sales for Customer"
       :action      (fn []
-                     (do (println "Enter customer name:")
-                         (let [name (read-line)]
-                           (print-table (db/exec-query (q/select-total-for-customer-query name))))))}
+                     (println "Enter customer name:")
+                     (let [name (read-line)]
+                       (-> name q/select-total-for-customer-query db/exec-query print-table)))}
    5 {:description "Total Count for Product"
-      :action      (fn [] (do (println "Enter product description:")
-                              (let [product (read-line)]
-                                (print-table (db/exec-query (q/select-total-count-for-product product))))))}
+      :action      (fn [] (println "Enter product description:")
+                     (let [product (read-line)]
+                       (-> product q/select-total-count-for-product db/exec-query print-table)))}
    6 {:description "Exit"
       :action      #(println "Goodbye")}})
 
@@ -54,7 +63,7 @@
     (print-menu)
     (let [option (db/safe-parse-int (read-line))]
       (if-let [action (:action (get actions option))]
-        (do (action) (when (not (= option 6)) (recur)))
+        (do (action) (when-not (= option 6) (recur)))
         (do (println "Invalid option, please try again.") (recur))))))
 
 (comment
