@@ -2,6 +2,6 @@ FROM openjdk:17
 
 WORKDIR /
 
-COPY target/production-app.jar /
+COPY target/production-app.jar /app/
 
-CMD java -jar target/production-app.jar
+CMD java -jar app/production-app.jar

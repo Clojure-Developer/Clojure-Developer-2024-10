@@ -1,6 +1,7 @@
 (ns otus-30.core
   (:gen-class)
   (:require
+   [org.httpkit.server :as http-kit]
    [com.brunobonacci.mulog :as mulog]
    [nrepl.server :as nrepl]))
 
@@ -10,30 +11,42 @@
 ;;   public static void main(String[] var0) {
 ;; }}
 
-#_(defn -main [& args]
-    (println "Hello world"))
-
-
+(defn -main [& args]
+  (println "Hello world"))
 
 (defn start-repl-server [port]
-  (nrepl/start-server
-   :port port
-   :bind "0.0.0.0"))
+  (nrepl/start-server :port port
+                      :bind "0.0.0.0"))
 
+(defn app [req]
+  {:status  200
+   :headers {"Content-Type" "text/html"}
+   :body    "Hello guys!"})
 
-(defn -main [& args]
-  (start-repl-server 9999)
+#_(defn -main [& args]
+  (start-repl-server 8888)
 
-  (let [stop-mulog (mulog/start-publisher!
-                    {:type    :console
-                     :pretty? true})]
+  (let [stop-mulog (mulog/start-publisher! {:type :console
+                                            :pretty? true})
+        server (http-kit/run-server app {:port 3000
+                                         :legacy-return-value? false})]
 
     (mulog/log ::app-started
+               :level :info
                :timestamp (System/currentTimeMillis)
                :message "App started"
-               :level :info
-               :data {:args "args"})
+               :data {:args "args"}) 
+    
+    (println "[ APP STARTED ]")
+    (println (http-kit/server-status server))
+    
+    (.addShutdownHook
+     (Runtime/getRuntime)
+     (Thread. (fn []
+                (stop-mulog)
+                (http-kit/server-stop! server)
+                (println "[ APP STOPPED ]"))))))
 
-    (println "Hello world")
-
-    (stop-mulog)))
+(comment
+  (-main)
+  (System/exit 0))

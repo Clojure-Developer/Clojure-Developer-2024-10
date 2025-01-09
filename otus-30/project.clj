@@ -8,11 +8,13 @@
 
                  [com.brunobonacci/mulog "0.9.0"]
 
+                 [http-kit/http-kit "2.8.0"]
+
                  [nrepl "0.9.0"]
 
-                 [com.amazonaws/aws-lambda-java-runtime-interface-client "2.4.0"]]
+                 [com.amazonaws/aws-lambda-java-runtime-interface-client "2.4.0"]
 
-
+                 [com.github.clj-easy/graal-build-time "1.0.5"]]
 
   :uberjar-name "production-app.jar"
 
@@ -20,4 +22,14 @@
 
   :repl-options {:init-ns otus-30.core}
 
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}
+             :dev {:plugins [[lein-shell "0.5.0"]]}}
+
+  :aliases
+  {"native"
+   ["do" "clean," "uberjar"
+    ["shell" "native-image"
+     "--report-unsupported-elements-at-runtime"
+     "--features=clj_easy.graal_build_time.InitClojureClasses"
+     "-jar" "./target/production-app.jar"
+     "-H:Name=./target/native-app"]]})
