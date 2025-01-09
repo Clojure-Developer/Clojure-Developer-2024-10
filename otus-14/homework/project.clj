@@ -9,7 +9,10 @@
                  [ring/ring-devel "1.10.0"]
                  [compojure "1.7.0"]
                  [hiccup "1.0.5"]
-                 [cheshire "5.11.0"]]
+                 [cheshire "5.11.0"]
+                 [metosin/spec-tools "0.10.7"]
+                 [org.clojure/test.check "1.1.1"]
+                 ]
   :main ^:skip-aot spec-faker.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
