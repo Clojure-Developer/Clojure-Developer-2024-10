@@ -7,4 +7,7 @@
   "Функция возвращает true, если из букв в строке letters
   можно составить слово word."
   [letters word]
-  nil)
+  (let [letters-count (frequencies letters)
+        word-count (frequencies word)]
+    (every? (fn [[char count]]
+              (>= (get letters-count char 0) count)) word-count)))
