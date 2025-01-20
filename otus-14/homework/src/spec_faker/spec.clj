@@ -9,6 +9,7 @@
 (s/def :faker/type #{"integer" "string" "date" "float"})
 (s/def :faker/spec (s/coll-of (s/keys :req-un [:faker/name :faker/type])))
 
+;; Here we can add more types and checks:
 (s/def :user-spec/string string?)
 (s/def :user-spec/integer integer?)
 (s/def :user-spec/date inst?)
