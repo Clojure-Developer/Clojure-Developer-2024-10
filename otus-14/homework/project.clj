@@ -11,8 +11,9 @@
                  [hiccup "1.0.5"]
                  [cheshire "5.11.0"]
                  [metosin/spec-tools "0.10.7"]
-                 [org.clojure/test.check "1.1.1"]
-                 ]
+                 [metosin/ring-swagger "0.26.2"]
+                 [metosin/ring-swagger-ui "5.18.2"]
+                 [org.clojure/test.check "1.1.1"]]
   :main ^:skip-aot spec-faker.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all

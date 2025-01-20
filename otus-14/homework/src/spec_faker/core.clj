@@ -5,101 +5,51 @@
    [hiccup.core :refer [html]]
    [hiccup.util :refer [url]]
    [ring.adapter.jetty :refer [run-jetty]]
-   [ring.util.response :refer [redirect]]
+   [ring.util.response :refer [redirect response content-type]]
    [ring.middleware.reload :refer [wrap-reload]]
    [ring.middleware.params :refer [wrap-params]]
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
-   [cheshire.core :refer [generate-string parse-string]]
-   [clojure.spec.alpha :as s]
-   [spec-tools.json-schema :as js]
-   [spec-tools.core :as st]
-   [clojure.spec.gen.alpha :as gen])
+   [cheshire.core :refer [generate-string]]
+   [ring.swagger.swagger-ui :refer [wrap-swagger-ui]]
+   [spec-faker.spec :as sspec])
   (:gen-class))
 
-(defn page [title & body]
+(defn- page [title & body]
   [:html
    [:head
     [:title title]]
-   [:body
-    body]])
+   (conj [:body body]
+         [:a {:href (url "/")} "Home"]
+         [:br]
+         [:a {:href (url "/swagger")} "Swagger"])])
 
-(comment
-
-  (s/def ::id int?)
-  (s/def ::description string?)
-  (s/def ::amount pos-int?)
-  (s/def ::delivery inst?)
-  (s/def ::tags (s/coll-of keyword? :into #{}))
-  (s/def ::item (s/keys :req-un [::description ::tags ::amount]))
-  (s/def ::items (s/map-of ::id ::item))
-  (s/def ::location (s/tuple double? double?))
-  (s/def ::order (s/keys :req-un [::id ::items ::delivery ::location]))
-
-  (gen/generate (s/gen ::order))
-  (gen/sample (s/gen ::order))
-
-  (gen/generate (js/transform ::order))
-
-(gen/sample (s/gen #{:club :diamond :heart :spade}))
-
-  (def order
-    {:id 123,
-     :items {1 {:description "vadelmalimsa"
-                :tags #{:good :red}
-                :amount 10},
-             2 {:description "korvapuusti"
-                :tags #{:raisin :sugar}
-                :amount 20}},
-     :delivery #inst"2007-11-20T20:19:17.000-00:00",
-     :location [61.499374 23.7408149]})
-
-  (s/gen ::order)
-
-  (s/valid? (s/spec (js/transform ::order)) order)
-  (generate-string (s/spec (js/transform ::order)))
-
-  (st/coerce
-   ::order
-   {:id 123,
-    :items {1 {:description "vadelmalimsa"
-               :tags #{:good :red}
-               :amount 10},
-            2 {:description "korvapuusti"
-               :tags #{:raisin :sugar}
-               :amount 20}},
-    :delivery #inst"2007-11-20T20:19:17.000-00:00",
-    :location [61.499374 23.7408149]}
-   st/json-transformer)
-
-  (st/serialize ::id)
-
-  (s/explain (s/spec (js/transform ::order)) order)
-
-  (st/deserialize "(clojure.spec.alpha/keys :req-un [:spec-faker.core/id :spec-faker.core/items :spec-faker.core/delivery :spec-faker.core/location])")
-
-  (s/form ::order)
-  (s/gen ::order))
-
-(defn valid? [spec]
-  true)
-
-(defn gen-data-for-spec [spec]
-  [])
+(defn- jsonify [something]
+  (-> something
+      generate-string
+      response
+      (content-type "application/json")))
 
 (defroutes router
+  (GET "/swagger.json" []
+    (jsonify sspec/swagger-json))
+
   (GET "/" [spec]
-    (html
-     (page
-      "Spec gen"
-      (if (nil? spec) [:form {:method "POST"}
-                       [:label "Spec: "]
-                       [:textarea {:name "spec" :rows "10" :cols "30"}]
-                       [:button {:type "submit"} "Go..."]]
-          [:h2  (str (parse-string spec))]))))
+    (if (nil? spec) (html (page "Spec generator" [:form {:method "POST"}
+                                                  [:label "Spec: "]
+                                                  [:textarea {:name "spec" :rows "10" :cols "30"}
+                                                   "[{\"name\": \"id\", \"type\": \"integer\"},{\"name\": \"sample\", \"type\": \"string\"}]"]
+                                                  [:button {:type "submit"} "Go..."]]))
+
+        (when (sspec/valid? spec)
+          (jsonify (sspec/gen-data spec)))))
 
   (POST "/" [spec]
-    (when (valid? spec)
-      (redirect (str (url "/" {:spec (generate-string spec)})))))
+    (if (sspec/valid? spec)
+      (redirect (str (url "/" {:spec spec})))
+      (html
+       (page
+        "Invalid spec"
+        [:h1 "Invalid spec"]))))
 
   (route/not-found
    (html
@@ -110,7 +60,8 @@
 (def app
   (-> #'router
       wrap-keyword-params
-      wrap-params))
+      wrap-params
+      (wrap-swagger-ui {:path "/swagger"})))
 
 (comment
   (def dev-server (run-jetty (wrap-reload #'app) {:join? false
@@ -120,7 +71,5 @@
 (defn -main
   [& args]
   (run-jetty
-
    (wrap-reload app)
-
    {:port 8000}))
