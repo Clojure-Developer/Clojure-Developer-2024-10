@@ -100,7 +100,8 @@
   (string/split line #"\|"))
 
 (defn- fmt-line [line]
-  (-> (split-line line)
+  (-> line
+      split-line
       rest
       vec))
 (def ^:private tables {:customer "resources/homework/cust.txt"
